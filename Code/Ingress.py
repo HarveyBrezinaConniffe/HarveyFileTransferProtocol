@@ -38,3 +38,13 @@ while True:
 
 		# Send data to client.
 		sock.sendto(data, (client, PORT))
+
+	elif packet.type == Packets.typeToNum["EndChunk"]:
+		print("Recieving end chunk packet from worker {}".format(addr[0]))
+
+		# Get client handled by worker.
+		client = workerToClient[currentWorker]
+		print("Bound for client {}".format(client))
+
+		# Send data to client.
+		sock.sendto(data, (client, PORT))

@@ -12,6 +12,21 @@ FILE_DIRECTORY = "../Files/"
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(("", PORT))
 
+fileHandler = None
+
+def sendChunk(f):
+	packetsSinceAck = 0
+	data = f.read(BYTES_PER_PACKET)	
+	while data != "" and packetsSinceAck < PACKETS_PER_CHUNK:
+		dataPacket = Packets.FileContentsPacket(packetsSinceAck, data)
+		sock.sendto(dataPacket.encode(), (LOADBALANCER_IP, PORT))
+		packetsSinceAck += 1
+		data = f.read(BYTES_PER_PACKET)	
+
+	# End of chunk
+	endChunkPacket = Packets.EndChunkPacket()
+	sock.sendto(endChunkPacket.encode(), (LOADBALANCER_IP, PORT))
+
 while True:
 	data, addr = sock.recvfrom(512)
 
@@ -21,12 +36,7 @@ while True:
 
 	if packet.type == Packets.typeToNum["FileRequest"]:
 		print("Recieving request for {} from load balancer.".format(packet.filename, addr[0]))
-
-		packetsSinceAck = 0
-		with open(FILE_DIRECTORY+packet.filename, "rb") as f:
-			data = f.read(BYTES_PER_PACKET)	
-			while data != "" and packetsSinceAck < PACKETS_PER_CHUNK:
-				dataPacket = Packets.FileContentsPacket(packetsSinceAck, data)
-				sock.sendto(dataPacket.encode(), (LOADBALANCER_IP, PORT))
-				packetsSinceAck += 1
+		fileHandler = open(FILE_DIRECTORY+packet.filename, "rb")
+		# Send first chunk
+		sendChunk(fileHandler)
 
