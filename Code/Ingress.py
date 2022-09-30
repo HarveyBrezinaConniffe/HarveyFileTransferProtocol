@@ -28,3 +28,13 @@ while True:
 
 		# Send request to worker.
 		sock.sendto(data, (currentWorker, PORT))
+
+	elif packet.type == Packets.typeToNum["FileContents"]:
+		print("Recieving file contents from worker {}".format(addr[0]))
+
+		# Get client handled by worker.
+		client = workerToClient[currentWorker]
+		print("Bound for client {}".format(client))
+
+		# Send data to client.
+		sock.sendto(data, (client, PORT))
