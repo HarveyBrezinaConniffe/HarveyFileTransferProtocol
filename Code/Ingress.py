@@ -48,3 +48,13 @@ while True:
 
 		# Send data to client.
 		sock.sendto(data, (client, PORT))
+
+	elif packet.type == Packets.typeToNum["AckChunk"]:
+		print("Chunk ack from {}".format(addr[0]))
+
+		# Get worker handled by client.
+		worker = clientToWorker[addr[0]]
+		print("Bound for worker {}".format(worker))
+
+		# Send data to worker.
+		sock.sendto(data, (worker, PORT))

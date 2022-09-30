@@ -25,6 +25,8 @@ def sendChunk(f):
 
 	# End of chunk
 	endOfFile = data==""
+	if endOfFile:
+		f.close()
 	endChunkPacket = Packets.EndChunkPacket(endOfFile)
 	sock.sendto(endChunkPacket.encode(), (LOADBALANCER_IP, PORT))
 
@@ -41,3 +43,6 @@ while True:
 		# Send first chunk
 		sendChunk(fileHandler)
 
+	if packet.type == Packets.typeToNum["AckChunk"]:
+		print("Ack for last chunk. Sending next chunk.")
+		sendChunk(fileHandler)

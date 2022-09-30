@@ -1,4 +1,4 @@
-typeToNum = {"FileRequest": 0, "FileContents": 1, "EndChunk": 2}
+typeToNum = {"FileRequest": 0, "FileContents": 1, "EndChunk": 2, "AckChunk": 3}
 
 class FileRequestPacket():
 	def __init__(self, filename):
@@ -56,7 +56,19 @@ class EndChunkPacket():
 		endOfFile = packet[1] == 1
 		return cls(endOfFile)
 
-numToClass = {0: FileRequestPacket, 1: FileContentsPacket, 2: EndChunkPacket}
+class AckChunkPacket():
+	def __init__(self):
+		self.type = typeToNum["AckChunk"]
+
+	def encode(self):
+		typeByte = (self.type).to_bytes(1, byteorder='big')
+		return typeByte
+
+	@classmethod
+	def decode(cls, packet):
+		return cls()
+
+numToClass = {0: FileRequestPacket, 1: FileContentsPacket, 2: EndChunkPacket, 3: AckChunkPacket}
 
 def decodePacket(packet):
 	packetType = packet[0]
