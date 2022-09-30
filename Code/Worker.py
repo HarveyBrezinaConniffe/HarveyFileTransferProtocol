@@ -24,7 +24,8 @@ def sendChunk(f):
 		data = f.read(BYTES_PER_PACKET)	
 
 	# End of chunk
-	endChunkPacket = Packets.EndChunkPacket()
+	endOfFile = data==""
+	endChunkPacket = Packets.EndChunkPacket(endOfFile)
 	sock.sendto(endChunkPacket.encode(), (LOADBALANCER_IP, PORT))
 
 while True:

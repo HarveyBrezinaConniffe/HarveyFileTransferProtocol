@@ -32,4 +32,4 @@ while not fileRecieved:
 		chunkbuffer[packet.position] = packet.data	
 
 	if packet.type == Packets.typeToNum["EndChunk"]:
-		print("End chunk.")
+		print("End chunk. End of file: {}".format(packet.endOfFile))
