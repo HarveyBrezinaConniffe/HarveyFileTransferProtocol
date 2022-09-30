@@ -1,13 +1,13 @@
 import socket
 import Packets
 
-LISTEN_PORT = 6000
+PORT = 6000
 
-listener = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-listener.bind(("", LISTEN_PORT))
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.bind(("", PORT))
 
 while True:
-	data, addr = listener.recvfrom(512)
+	data, addr = sock.recvfrom(512)
 
 	packet = Packets.decodePacket(data)
 	if packet == None:

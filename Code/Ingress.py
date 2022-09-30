@@ -1,10 +1,10 @@
 import socket
 import Packets
 
-LISTEN_PORT = 6000
+PORT = 6000
 
-listener = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-listener.bind(("", LISTEN_PORT))
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.bind(("", PORT))
 
 #availableWorkers = {"172.41.0.2", "172.17.0.3", "172.17.0.4"}
 availableWorkers = {"172.41.0.2"}
@@ -12,7 +12,7 @@ workerToClient = {}
 clientToWorker = {}
 
 while True:
-	data, addr = listener.recvfrom(512)
+	data, addr = sock.recvfrom(512)
 
 	packet = Packets.decodePacket(data)
 	if packet == None:
@@ -27,4 +27,4 @@ while True:
 		clientToWorker[addr[0]] = currentWorker
 
 		# Send request to worker.
-		listener.sendto(data, (currentWorker, LISTEN_PORT))
+		sock.sendto(data, (currentWorker, PORT))
