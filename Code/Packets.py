@@ -41,17 +41,20 @@ class FileContentsPacket():
 		return cls(position, data)
 
 class EndChunkPacket():
-	def __init__(self):
+	def __init__(self, endOfFile=False):
 		self.type = typeToNum["EndChunk"]
+		self.endOfFile = endOfFile
 	
 	def encode(self):
 		# Store type of packet in first byte
 		typeByte = (self.type).to_bytes(1, byteorder='big')
-		return typeByte
+		endOfFileByte = int(self.endOfFile).to_bytes(1, byteorder='big')
+		return typeByte+endOfFileByte
 
 	@classmethod
 	def decode(cls, packet):
-		return cls()
+		endOfFile = packet[1] == 1
+		return cls(endOfFile)
 
 numToClass = {0: FileRequestPacket, 1: FileContentsPacket, 2: EndChunkPacket}
 
