@@ -1,5 +1,6 @@
 import socket
 import Packets
+import time
 
 LOADBALANCER_IP = "172.41.0.5"
 
@@ -11,6 +12,11 @@ FILE_DIRECTORY = "../Files/"
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(("", PORT))
+
+broadcastSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+broadcastSock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+broadcastInterval = 10
+lastBroadcast = 0
 
 fileHandler = None
 bytesSent = 0
@@ -51,3 +57,9 @@ while True:
 	if packet.type == Packets.typeToNum["AckChunk"]:
 		print("Ack for last chunk. Sending next chunk.")
 		sendChunk(fileHandler)
+
+	timeSinceBroadcast = time.time()-lastBroadcast
+	if timeSinceBroadcast >= broadcastInterval:
+		discoveryPacket = Packets.DiscoveryPacket(Packets.nodeTypes.Worker)
+		broadcastSock.sendto(discoveryPacket.encode(), ("255.255.255.255", PORT))
+		lastBroadcast = time.time()
