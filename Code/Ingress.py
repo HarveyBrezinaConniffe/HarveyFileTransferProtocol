@@ -2,21 +2,24 @@ import socket
 import Packets
 
 PORT = 6000
+DISCOVERYPORT = 6001
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(("", PORT))
+sock.settimeout(3)
 
-#availableWorkers = {"172.41.0.2", "172.17.0.3", "172.17.0.4"}
-availableWorkers = {"172.41.0.2"}
+broadcastSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+broadcastSock.bind(("255.255.255.255", DISCOVERYPORT))
+broadcastSock.settimeout(0.0)
+
+availableWorkers = set({})
 workerToClient = {}
 clientToWorker = {}
 
-while True:
-	data, addr = sock.recvfrom(512)
-
+def recievePacket(data, addr):
 	packet = Packets.decodePacket(data)
 	if packet == None:
-		continue
+		return
 
 	if packet.type == Packets.typeToNum["FileRequest"]:
 		print("Recieving request for {} from {}".format(packet.filename, addr[0]))
@@ -58,3 +61,33 @@ while True:
 
 		# Send data to worker.
 		sock.sendto(data, (worker, PORT))
+
+def recieveBroadcast(data, addr):
+	packet = Packets.decodePacket(data)
+
+	if packet == None:
+		return
+
+	if packet.type == Packets.typeToNum["Discovery"]:
+		print("Discovery packet from {}".format(addr[0]))
+
+		workerIP = addr[0]
+		if workerIP not in availableWorkers:
+			print("New worker discovered!")
+			availableWorkers.add(workerIP)
+
+while True:
+	try:
+		data, addr = sock.recvfrom(512)
+	except:
+		pass
+	else:
+		recievePacket(data, addr)
+		
+	try:
+		data, addr = broadcastSock.recvfrom(512)
+	except:
+		pass
+	else:
+		recieveBroadcast(data, addr)
+

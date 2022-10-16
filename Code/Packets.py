@@ -1,4 +1,5 @@
-typeToNum = {"FileRequest": 0, "FileContents": 1, "EndChunk": 2, "AckChunk": 3}
+typeToNum = {"FileRequest": 0, "FileContents": 1, "EndChunk": 2, "AckChunk": 3, "Discovery": 4}
+nodeTypes = {"Worker": 0}
 
 class FileRequestPacket():
 	def __init__(self, filename):
@@ -68,7 +69,21 @@ class AckChunkPacket():
 	def decode(cls, packet):
 		return cls()
 
-numToClass = {0: FileRequestPacket, 1: FileContentsPacket, 2: EndChunkPacket, 3: AckChunkPacket}
+class DiscoveryPacket():
+	def __init__(self, nodeType):
+		self.type = typeToNum["Discovery"]
+		self.nodeType = nodeType
+
+	def encode(self):
+		typeByte = (self.type).to_bytes(1, byteorder='big')
+		nodeTypeByte = (self.nodeType).to_bytes(1, byteorder='big')
+		return typeByte+nodeTypeByte
+
+	@classmethod
+	def decode(cls, packet):
+		return cls(packet[1])
+
+numToClass = {0: FileRequestPacket, 1: FileContentsPacket, 2: EndChunkPacket, 3: AckChunkPacket, 4: DiscoveryPacket}
 
 def decodePacket(packet):
 	packetType = packet[0]
