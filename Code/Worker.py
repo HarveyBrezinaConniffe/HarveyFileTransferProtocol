@@ -5,6 +5,8 @@ import time
 LOADBALANCER_IP = "172.41.0.5"
 
 PORT = 6000
+DISCOVERYPORT = 6001
+
 BYTES_PER_PACKET = 1024
 PACKETS_PER_CHUNK = 32
 
@@ -12,6 +14,7 @@ FILE_DIRECTORY = "../Files/"
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(("", PORT))
+sock.settimeout(3)
 
 broadcastSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 broadcastSock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -41,12 +44,10 @@ def sendChunk(f):
 	endChunkPacket = Packets.EndChunkPacket(endOfFile)
 	sock.sendto(endChunkPacket.encode(), (LOADBALANCER_IP, PORT))
 
-while True:
-	data, addr = sock.recvfrom(512)
-
+def recievePacket(data, addr):
 	packet = Packets.decodePacket(data)
 	if packet == None:
-		continue
+		return
 
 	if packet.type == Packets.typeToNum["FileRequest"]:
 		print("Recieving request for {} from load balancer.".format(packet.filename, addr[0]))
@@ -58,8 +59,18 @@ while True:
 		print("Ack for last chunk. Sending next chunk.")
 		sendChunk(fileHandler)
 
+while True:
+	try:
+		data, addr = sock.recvfrom(512)
+	except:
+		pass
+	else:
+		recievePacket(data, addr)
+
 	timeSinceBroadcast = time.time()-lastBroadcast
+	print(timeSinceBroadcast)
 	if timeSinceBroadcast >= broadcastInterval:
-		discoveryPacket = Packets.DiscoveryPacket(Packets.nodeTypes.Worker)
-		broadcastSock.sendto(discoveryPacket.encode(), ("255.255.255.255", PORT))
+		print("SENDING DISCOVERY PACKET")
+		discoveryPacket = Packets.DiscoveryPacket(Packets.nodeTypes["Worker"])
+		broadcastSock.sendto(discoveryPacket.encode(), ("255.255.255.255", DISCOVERYPORT))
 		lastBroadcast = time.time()
