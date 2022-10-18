@@ -58,16 +58,24 @@ class EndChunkPacket():
 		return cls(endOfFile)
 
 class AckChunkPacket():
-	def __init__(self):
+	def __init__(self, missingPackets=[]):
 		self.type = typeToNum["AckChunk"]
+		self.missingPackets = missingPackets
 
 	def encode(self):
 		typeByte = (self.type).to_bytes(1, byteorder='big')
-		return typeByte
+		missingPacketsBytes = b""
+		for packetNum in self.missingPackets:
+			missingPacketsBytes += packetNum.to_bytes(1, byteorder='big')
+		return typeByte+missingPacketsBytes
 
 	@classmethod
 	def decode(cls, packet):
-		return cls()
+		missingPacketsBytes = packet[1:]
+		missingPackets = []
+		for packet in missingPacketsBytes:
+			missingPackets.append(packet)
+		return cls(missingPackets)
 
 class DiscoveryPacket():
 	def __init__(self, nodeType):

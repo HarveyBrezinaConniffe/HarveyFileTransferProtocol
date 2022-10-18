@@ -9,7 +9,7 @@ sock.bind(("", PORT))
 sock.settimeout(3)
 
 broadcastSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-broadcastSock.bind(("255.255.255.255", DISCOVERYPORT))
+broadcastSock.bind(("172.41.255.255", DISCOVERYPORT))
 broadcastSock.settimeout(0.0)
 
 availableWorkers = set({})
@@ -28,6 +28,7 @@ def recievePacket(data, addr):
 		currentWorker = availableWorkers.pop()
 		workerToClient[currentWorker] = addr[0]
 		clientToWorker[addr[0]] = currentWorker
+		print("Assigning worker {} to client {}".format(currentWorker, addr[0]))
 
 		# Send request to worker.
 		sock.sendto(data, (currentWorker, PORT))
@@ -36,7 +37,7 @@ def recievePacket(data, addr):
 		print("Recieving file contents from worker {}".format(addr[0]))
 
 		# Get client handled by worker.
-		client = workerToClient[currentWorker]
+		client = workerToClient[addr[0]]
 		print("Bound for client {}".format(client))
 
 		# Send data to client.
@@ -46,7 +47,7 @@ def recievePacket(data, addr):
 		print("Recieving end chunk packet from worker {}".format(addr[0]))
 
 		# Get client handled by worker.
-		client = workerToClient[currentWorker]
+		client = workerToClient[addr[0]]
 		print("Bound for client {}".format(client))
 
 		# Send data to client.
@@ -69,8 +70,6 @@ def recieveBroadcast(data, addr):
 		return
 
 	if packet.type == Packets.typeToNum["Discovery"]:
-		print("Discovery packet from {}".format(addr[0]))
-
 		workerIP = addr[0]
 		if workerIP not in availableWorkers:
 			print("New worker discovered!")
