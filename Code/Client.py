@@ -25,6 +25,13 @@ def flushBuffer():
 		fileHandler.write(chunkbuffer[i])
 	chunkbuffer = {}
 
+def getMissingPackets():
+	packetOrders = sorted(list(chunkbuffer))
+	missingPackets = set(range(32))
+	for packet in list(chunkbuffer.keys()):
+		missingPackets.remove(packet)
+	return missingPackets
+
 while not fileRecieved:
 	data, addr = sock.recvfrom(512)
 
@@ -39,11 +46,17 @@ while not fileRecieved:
 
 	if packet.type == Packets.typeToNum["EndChunk"]:
 		print("End chunk. End of file: {}".format(packet.endOfFile))
-		print("Flushing buffer.")
-		flushBuffer()
-		if packet.endOfFile:
-			fileHandler.close()
-			print("Download Complete!")
-		else:
-			ackPacket = Packets.AckChunkPacket()
+		missingPackets = getMissingPackets()
+		if len(missingPackets) > 0:
+			print("Missing {}".format(missingPackets))
+			ackPacket = Packets.AckChunkPacket(missingPackets)
 			sock.sendto(ackPacket.encode(), (LOADBALANCER_IP, PORT))
+		else:
+			print("Flushing buffer.")
+			flushBuffer()
+			if packet.endOfFile:
+				fileHandler.close()
+				print("Download Complete!")
+			else:
+				ackPacket = Packets.AckChunkPacket()
+				sock.sendto(ackPacket.encode(), (LOADBALANCER_IP, PORT))
