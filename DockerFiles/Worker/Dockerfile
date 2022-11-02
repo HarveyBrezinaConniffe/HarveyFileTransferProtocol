@@ -3,4 +3,5 @@ WORKDIR /home
 RUN apt-get update
 RUN apt-get install -y net-tools netcat tcpdump inetutils-ping default-jre
 ADD Code.tar.gz /home/
-CMD ["/bin/bash"]
+ADD HostedFiles.tar.gz /home/
+ENTRYPOINT python /home/Code/Worker.py
