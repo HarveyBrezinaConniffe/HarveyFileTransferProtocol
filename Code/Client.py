@@ -16,7 +16,7 @@ requestPacket = Packets.FileRequestPacket(filename)
 sock.sendto(requestPacket.encode(), (LOADBALANCER_IP, PORT))
 
 fileRecieved = False
-fileHandler = open("../Downloads/"+filename, 'wb')
+fileHandler = open("/home/Downloads/"+filename, 'wb')
 chunkbuffer = {}
 
 def flushBuffer():

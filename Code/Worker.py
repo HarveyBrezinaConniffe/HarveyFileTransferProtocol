@@ -10,7 +10,7 @@ DISCOVERYPORT = 6001
 BYTES_PER_PACKET = 1024
 PACKETS_PER_CHUNK = 32
 
-FILE_DIRECTORY = "../Files/"
+FILE_DIRECTORY = "/home/HostedFiles/"
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(("", PORT))
